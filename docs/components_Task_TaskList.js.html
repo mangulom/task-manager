@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/Task/TaskList.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/Task/TaskList.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState } from 'react';
+import { Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, IconButton, Button, TablePagination, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Edit, Delete } from '@mui/icons-material';
+
+/**
+ * Componente de lista de tareas.
+ * Muestra todas las tareas con la opción de editarlas o eliminarlas.
+ *
+ * @param {Object[]} tasks - Lista de tareas.
+ * @returns {JSX.Element} Renderiza la lista de tareas.
+ */
+const TaskList = () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5); // Cantidad de tareas por página
+  const [tasks, setTasks] = useState([
+    { id: 1, title: 'Tarea 1', description: 'Advertir de Alta Concurrencia', status: 'Pendiente' },
+    { id: 2, title: 'Tarea 2', description: 'Revisar Lista de Eventos', status: 'En Progreso' },
+    { id: 3, title: 'Tarea 3', description: 'Realizar Backup BD Logs', status: 'Completado' },
+    { id: 4, title: 'Tarea 4', description: 'Revisar Logs de Error', status: 'Error' },
+    { id: 5, title: 'Tarea 5', description: 'Actualizar Documentación', status: 'Pendiente' },
+    { id: 6, title: 'Tarea 6', description: 'Corregir Bug en el Login', status: 'Completado' },
+    { id: 7, title: 'Tarea 7', description: 'Revisar Requerimientos del Cliente', status: 'En Progreso' },
+    { id: 8, title: 'Tarea 8', description: 'Optimizar Consultas SQL', status: 'Completado' },
+  ]);
+  const [editingTask, setEditingTask] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Pendiente':
+        return 'info'; // Azul
+      case 'En Progreso':
+        return 'warning'; // Amarillo
+      case 'Completado':
+        return 'success'; // Verde
+      case 'Error':
+        return 'error'; // Rojo
+      default:
+        return 'default'; // Gris
+    }
+  };
+
+  const handleEdit = (task) => {
+    setEditingTask(task);
+    setOpenDialog(true);
+  };
+
+  const handleDelete = (id) => {
+    setTasks(tasks.filter(task => task.id !== id)); // Eliminar tarea por ID
+  };
+
+  const handleSave = () => {
+    setTasks(tasks.map(task => 
+      task.id === editingTask.id ? editingTask : task
+    ));
+    setOpenDialog(false);
+    setEditingTask(null);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  return (
+    &lt;Box sx={{ display: 'flex', justifyContent: 'center', paddingTop: 2 }}>
+      &lt;Paper sx={{ width: '80%', padding: 2, borderRadius: 3, boxShadow: 3 }}>
+        &lt;Typography variant="h5" gutterBottom>
+          Lista de Tareas
+        &lt;/Typography>
+
+        &lt;TableContainer>
+          &lt;Table sx={{ minWidth: 650 }}>
+            &lt;TableHead>
+              &lt;TableRow>
+                &lt;TableCell>Título&lt;/TableCell>
+                &lt;TableCell>Descripción&lt;/TableCell>
+                &lt;TableCell>Estado&lt;/TableCell>
+                &lt;TableCell>Acciones&lt;/TableCell>
+              &lt;/TableRow>
+            &lt;/TableHead>
+            &lt;TableBody>
+              {tasks
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((task) => (
+                  &lt;TableRow key={task.id}>
+                    &lt;TableCell>{task.title}&lt;/TableCell>
+                    &lt;TableCell>{task.description}&lt;/TableCell>
+                    &lt;TableCell>
+                      &lt;Button variant="contained" color={getStatusColor(task.status)}>
+                        {task.status}
+                      &lt;/Button>
+                    &lt;/TableCell>
+                    &lt;TableCell>
+                      &lt;IconButton onClick={() => handleEdit(task)} color="primary">
+                        &lt;Edit />
+                      &lt;/IconButton>
+                      &lt;IconButton onClick={() => handleDelete(task.id)} color="error">
+                        &lt;Delete />
+                      &lt;/IconButton>
+                    &lt;/TableCell>
+                  &lt;/TableRow>
+                ))}
+            &lt;/TableBody>
+          &lt;/Table>
+        &lt;/TableContainer>
+
+        &lt;TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={tasks.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      &lt;/Paper>
+
+      {/* Modal de edición de tarea */}
+      &lt;Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        &lt;DialogTitle>Editar Tarea&lt;/DialogTitle>
+        &lt;DialogContent>
+          {editingTask &amp;&amp; (
+            &lt;>
+              &lt;TextField
+                label="Título"
+                fullWidth
+                value={editingTask.title}
+                onChange={(e) => setEditingTask({ ...editingTask, title: e.target.value })}
+                sx={{ marginBottom: 2 }}
+              />
+              &lt;TextField
+                label="Descripción"
+                fullWidth
+                value={editingTask.description}
+                onChange={(e) => setEditingTask({ ...editingTask, description: e.target.value })}
+                sx={{ marginBottom: 2 }}
+              />
+              &lt;TextField
+                label="Estado"
+                fullWidth
+                value={editingTask.status}
+                onChange={(e) => setEditingTask({ ...editingTask, status: e.target.value })}
+                sx={{ marginBottom: 2 }}
+              />
+            &lt;/>
+          )}
+        &lt;/DialogContent>
+        &lt;DialogActions>
+          &lt;Button onClick={() => setOpenDialog(false)} color="primary">Cancelar&lt;/Button>
+          &lt;Button onClick={handleSave} color="primary">Guardar&lt;/Button>
+        &lt;/DialogActions>
+      &lt;/Dialog>
+    &lt;/Box>
+  );
+};
+
+export default TaskList;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#Footer">Footer</a></li><li><a href="global.html#Header">Header</a></li><li><a href="global.html#LoginForm">LoginForm</a></li><li><a href="global.html#Sidebar">Sidebar</a></li><li><a href="global.html#TaskForm">TaskForm</a></li><li><a href="global.html#TaskItem">TaskItem</a></li><li><a href="global.html#TaskList">TaskList</a></li><li><a href="global.html#addTask">addTask</a></li><li><a href="global.html#deleteTask">deleteTask</a></li><li><a href="global.html#getTasks">getTasks</a></li><li><a href="global.html#login">login</a></li><li><a href="global.html#updateTask">updateTask</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Thu Jan 30 2025 09:39:20 GMT-0500 (hora estándar de Perú)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
